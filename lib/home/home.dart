@@ -51,7 +51,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   void initModel() async {
     await speech.initVosk(
         modelPath: "assets/models/vosk-model-small-en-in-0.4.zip");
-    await speech.commandListenerStart();
+    await speech.startListening();
   }
 
   void randomAnimation() {}
@@ -70,7 +70,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       backgroundColor: Colors.black,
       body: GestureDetector(
         onTap: () async {
-          await speech.commandListenerStart();
+          await speech.startListening();
         },
         child: Stack(children: [
           Center(

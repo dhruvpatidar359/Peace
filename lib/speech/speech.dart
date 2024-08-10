@@ -24,7 +24,6 @@ class Speech {
 
   final vosk = VoskFlutterPlugin.instance();
   final RiveAnimations riveAnimations = RiveAnimations();
-  stt.SpeechToText speech = stt.SpeechToText();
   final AudioRecorder _audioRecorder = AudioRecorder();
 
   String modelPath = "assets/models/vosk-model-en-in-0.5.zip";
@@ -42,7 +41,7 @@ class Speech {
     );
   }
 
-  Future<void> commandListenerStart() async {
+  Future<void> startListening() async {
     if (_recognizer == null) {
       await initVosk(modelPath: modelPath);
     }
@@ -86,8 +85,7 @@ class Speech {
     print("Full result: $result");
     if (result.contains("listen")) {
       riveAnimations.setAnimationIndex(3);
-      await stopCommandListener();
-      await assistantListenerStart();
+      GetIt.instance<AppState>().setListeningForAssistant = true;
     } else if (result.contains("weather")) {
       Position position = await determinePosition();
       WeatherFactory wf = WeatherFactory("e0ea4d8d7c2cf8cf263acac053719a6f",
@@ -113,47 +111,31 @@ class Speech {
       // Implement clock or study functionality
     } else if (result.contains("backup") || result.contains("completed")) {
       // Implement backup or completed functionality
+    } else if (GetIt.instance<AppState>().listeningForAssistant) {
+      // If assistant is listening, send the speech to Gemini
+      riveAnimations.setAnimationIndex(4);
+      GetIt.instance<AppState>().setGeminiAnswering = true;
+      final model = GenerativeModel(
+          model: 'gemini-pro',
+          apiKey: "AIzaSyB2JUqaldnZ44xfjR6Y2h3SOKv80okJAjo");
+      final prompt = result;
+      final content = [Content.text(prompt)];
+
+      final response = await model.generateContent(content);
+
+      GetIt.instance<AppState>().setPrompt = response.text!;
+      GetIt.instance<AppState>().setListeningForAssistant = false;
     }
   }
 
-  Future<void> stopCommandListener() async {
+  Future<void> stopListening() async {
     await _audioSubscription?.cancel();
     _audioSubscription = null;
     await _audioRecorder.stop();
   }
 
-  Future<void> assistantListenerStart() async {
-    bool available = await speech.initialize(
-      onError: (errorNotification) {
-        print(errorNotification.errorMsg);
-      },
-    );
-    if (available) {
-      speech.listen(
-        listenOptions: stt.SpeechListenOptions(partialResults: false),
-        onResult: (result) async {
-          GetIt.instance<AppState>().setGeminiAnswering = true;
-          riveAnimations.setAnimationIndex(4);
-          final model = GenerativeModel(
-              model: 'gemini-pro',
-              apiKey: "AIzaSyB2JUqaldnZ44xfjR6Y2h3SOKv80okJAjo");
-          final prompt = result.recognizedWords;
-          final content = [Content.text(prompt)];
-
-          final response = await model.generateContent(content);
-
-          GetIt.instance<AppState>().setPrompt = response.text!;
-
-          await commandListenerStart();
-        },
-      );
-    } else {
-      print("The user has denied the use of speech recognition.");
-    }
-  }
-
   void dispose() async {
-    await stopCommandListener();
+    await stopListening();
     await _recognizer?.dispose();
     // await _model?.dispose();
     _audioRecorder.dispose();
