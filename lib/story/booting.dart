@@ -1,8 +1,10 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:page_transition/page_transition.dart';
 
 import '../home/home.dart';
+import 'intro.dart';
 
 class BootScreen extends StatefulWidget {
   const BootScreen({Key? key}) : super(key: key);
@@ -67,6 +69,12 @@ class _BootScreenState extends State<BootScreen>
             // Boot Animation
 
             AnimatedTextKit(
+              onFinished: () {
+                Navigator.push(
+                    context,
+                    PageTransition(
+                        type: PageTransitionType.fade, child: IntroNext()));
+              },
               onNext: (int _, bool __) {
                 if (counter >= 2) return;
                 player.stop();
