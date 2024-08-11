@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get_it/get_it.dart';
 import 'package:peace/models/RiveModel.dart';
+import 'package:peace/story/booting.dart';
 
 import 'package:peace/weather/weatherWidgets.dart';
 import 'package:weather_animation/weather_animation.dart';
@@ -28,12 +29,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'flexible',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: Home(),
+      theme: ThemeData(fontFamily: 'Voyager'),
+      home: BootScreen(),
     );
   }
 }
