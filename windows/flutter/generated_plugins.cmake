@@ -4,10 +4,13 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_windows
+  camera_windows
+  file_selector_windows
   geolocator_windows
   permission_handler_windows
   record_windows
   rive_common
+  simple_camera_windows
   vosk_flutter
 )
 

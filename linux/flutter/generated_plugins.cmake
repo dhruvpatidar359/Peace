@@ -4,8 +4,10 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_linux
+  file_selector_linux
   record_linux
   rive_common
+  simple_camera_windows
   vosk_flutter
 )
 

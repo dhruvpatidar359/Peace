@@ -63,6 +63,11 @@ dependencies:
   audioplayers: ^6.0.0
   page_transition: ^2.1.0
 
+  permission_handler: ^10.4.5
+  image_picker: ^1.1.2
+  simple_camera_windows: ^0.0.8
+  camera_universal: ^0.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

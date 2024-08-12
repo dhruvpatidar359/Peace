@@ -1,5 +1,7 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:peace/story/cameraPermission.dart';
 import 'package:rive/rive.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 
@@ -15,14 +17,14 @@ class IntroNext extends StatefulWidget {
 class _IntroNextState extends State<IntroNext> {
   final RiveAnimations riveAnimations = RiveAnimations();
   final player = AudioPlayer();
+  // final player2 = AudioPlayer();
 
   @override
   void initState() {
     // TODO: implement initState
 
-    player.play(
-      AssetSource("audios/gibberish.mp3"),
-    );
+    player.play(AssetSource("audios/gibberish.mp3"),
+        position: Duration(milliseconds: 2200));
 
     super.initState();
   }
@@ -52,7 +54,7 @@ class _IntroNextState extends State<IntroNext> {
                 },
               ),
             ),
-            FuturisticBox()
+            FuturisticBox(player)
           ],
         ),
       ),
@@ -61,6 +63,10 @@ class _IntroNextState extends State<IntroNext> {
 }
 
 class FuturisticBox extends StatelessWidget {
+  final AudioPlayer player;
+
+  FuturisticBox(this.player);
+
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -96,6 +102,10 @@ class FuturisticBox extends StatelessWidget {
                 color: Colors.white,
               ),
               child: AnimatedTextKit(
+                onFinished: () async {
+                  print("working");
+                  await player.stop();
+                },
                 animatedTexts: [
                   TypewriterAnimatedText(
                     'Ugh... My circuits are buzzing...\nI sense something... or someone.',
@@ -111,6 +121,11 @@ class FuturisticBox extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   // Add your button action here
+                  Navigator.push(
+                      context,
+                      PageTransition(
+                          child: CameraPermission(),
+                          type: PageTransitionType.fade));
                 },
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
