@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'flexible',
       theme: ThemeData(fontFamily: 'Voyager'),
-      home: MicrophonePermission(),
+      home: BootScreen(),
     );
   }
 }
