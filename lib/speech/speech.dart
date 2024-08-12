@@ -32,6 +32,14 @@ class Speech {
   Recognizer? _recognizer;
   StreamSubscription<Uint8List>? _audioSubscription;
 
+  StreamController<List<double>> _audioSamplesController =
+      StreamController<List<double>>.broadcast();
+  StreamController<String> _recognizedTextController =
+      StreamController<String>.broadcast();
+
+  Stream<List<double>> get audioSamplesStream => _audioSamplesController.stream;
+  Stream<String> get recognizedTextStream => _recognizedTextController.stream;
+
   Future<void> initVosk({required String modelPath}) async {
     final enSmallModelPath = await ModelLoader().loadFromAssets(modelPath);
     _model = await vosk.createModel(enSmallModelPath);
@@ -71,14 +79,47 @@ class Speech {
   }
 
   Future<void> processAudio(Uint8List audioData) async {
+    // Convert audio data to samples for visualization
+    List<double> samples = audioDataToSamples(audioData);
+    _audioSamplesController.add(samples);
+
     final resultReady = await _recognizer!.acceptWaveformBytes(audioData);
     if (resultReady) {
       final result = await _recognizer!.getResult();
+      _recognizedTextController.add(result);
       handleCommandResult(result);
     } else {
       final partialResult = await _recognizer!.getPartialResult();
+      _recognizedTextController.add(partialResult);
       print("Partial: $partialResult");
     }
+  }
+
+  List<double> audioDataToSamples(Uint8List audioData) {
+    // Convert the audio data to a list of doubles
+    // This is a simplified conversion and may need to be adjusted based on your audio format
+    List<double> samples = [];
+    for (int i = 0; i < audioData.length; i += 2) {
+      if (i + 1 < audioData.length) {
+        int sample = audioData[i] | (audioData[i + 1] << 8);
+        if (sample > 32767) sample -= 65536;
+        samples.add(sample / 32768.0);
+      }
+    }
+    // Downsample to 50 points for visualization
+    return downsample(samples, 50);
+  }
+
+  List<double> downsample(List<double> samples, int targetLength) {
+    if (samples.length <= targetLength) return samples;
+
+    List<double> downsampled = [];
+    double ratio = samples.length / targetLength;
+    for (int i = 0; i < targetLength; i++) {
+      int index = (i * ratio).round();
+      downsampled.add(samples[index]);
+    }
+    return downsampled;
   }
 
   void handleCommandResult(String result) async {

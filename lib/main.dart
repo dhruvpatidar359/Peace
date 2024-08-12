@@ -4,7 +4,9 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get_it/get_it.dart';
 import 'package:peace/models/RiveModel.dart';
 import 'package:peace/story/booting.dart';
+import 'package:peace/story/cameraPermission.dart';
 import 'package:peace/story/intro.dart';
+import 'package:peace/story/micPermission.dart';
 
 import 'package:peace/weather/weatherWidgets.dart';
 import 'package:weather_animation/weather_animation.dart';
@@ -33,7 +35,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'flexible',
       theme: ThemeData(fontFamily: 'Voyager'),
-      home: BootScreen(),
+      home: MicrophonePermission(),
     );
   }
 }

@@ -4,7 +4,7 @@ import 'package:rive/rive.dart' as rive;
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:simple_camera_windows/backup/simple_camera_windows.dart';
+
 import 'dart:io';
 
 import '../rive/rive.dart';
@@ -23,24 +23,12 @@ class _CameraPermissionState extends State<CameraPermission> {
   File? _image;
 
   CameraController cameraController = CameraController();
-
-  Future<void> _selectImage() async {
-    try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
-      if (image != null) {
-        setState(() {
-          _image = File(image.path);
-        });
-        await player.play(AssetSource("audios/whooo.mp3"));
-      }
-    } catch (e) {
-      print("Failed to pick image: $e");
-    }
-  }
+  String? evaluationResult; // Variable to store evaluation result
 
   @override
   void dispose() {
     player.dispose();
+    cameraController.dispose();
     super.dispose();
   }
 
@@ -52,8 +40,8 @@ class _CameraPermissionState extends State<CameraPermission> {
   }
 
   Future<void> task() async {
-    // cameraController.camera_windows.camera(0);
     await cameraController.initializeCameras();
+
     await cameraController.initializeCamera(
       setState: setState,
     );
@@ -69,31 +57,43 @@ class _CameraPermissionState extends State<CameraPermission> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Camera(
-        cameraController: cameraController,
-        onCameraNotInit: (context) {
-          return const SizedBox.shrink();
-        },
-        onCameraNotSelect: (context) {
-          return const SizedBox.shrink();
-        },
-        onCameraNotActive: (context) {
-          return const SizedBox.shrink();
-        },
-        onPlatformNotSupported: (context) {
-          return const SizedBox.shrink();
-        },
+      body: Center(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              height: MediaQuery.of(context).size.height / 2,
+              width: MediaQuery.of(context).size.width / 2,
+              child: rive.RiveAnimation.asset(
+                'assets/modeSelection.riv',
+                stateMachines: ["shinkuMain"],
+                onInit: (artboard) {
+                  riveAnimations.onRiveInit(artboard);
+                },
+              ),
+            ),
+            FuturisticBox(
+              image: _image,
+              cameraController: cameraController,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class FuturisticBox extends StatelessWidget {
-  final VoidCallback onButtonPressed;
-  final File? image;
+class FuturisticBox extends StatefulWidget {
+  final CameraController cameraController;
+  File? image;
 
-  FuturisticBox({required this.onButtonPressed, this.image});
+  FuturisticBox({this.image, required this.cameraController});
 
+  @override
+  State<FuturisticBox> createState() => _FuturisticBoxState();
+}
+
+class _FuturisticBoxState extends State<FuturisticBox> {
   @override
   Widget build(BuildContext context) {
     return Expanded(
@@ -139,12 +139,12 @@ class FuturisticBox extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
-            if (image != null)
+            if (widget.image != null)
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.file(
-                    image!,
+                    widget.image!,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -153,7 +153,15 @@ class FuturisticBox extends StatelessWidget {
               Align(
                 alignment: Alignment.center,
                 child: ElevatedButton(
-                  onPressed: onButtonPressed,
+                  onPressed: () async {
+                    int cameraId = widget.cameraController.camera_id;
+
+                    widget.image = File((await widget
+                            .cameraController.camera_windows
+                            .takePicture(cameraId))
+                        .path);
+                    setState(() {});
+                  },
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.blueAccent,
@@ -163,11 +171,32 @@ class FuturisticBox extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   ),
                   child: Text(
-                    "Select an Image",
+                    "Capture your Environment",
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
               ),
+            if (widget.image != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: DefaultTextStyle(
+                  style: const TextStyle(
+                    fontSize: 18.0,
+                    fontFamily: 'Courier',
+                    color: Colors.white,
+                  ),
+                  child: AnimatedTextKit(
+                    animatedTexts: [
+                      TypewriterAnimatedText(
+                        'evaluationResult = Whoooo! Human species (Homo Sapiens) evaluated from Orangutan.',
+                        speed: Duration(milliseconds: 80),
+                      ),
+                    ],
+                    isRepeatingAnimation: false,
+                  ),
+                ),
+              ),
+            // Display the evaluation result below the capture button
           ],
         ),
       ),
